@@ -24,7 +24,7 @@ set.seed(123)
 a <- rlnorm(n_item, meanlog = 0.3, sdlog=0.3)
 b <- rnorm(n_item)
 c <- rbeta(n_item, 20, 80)
-par <- data.frame(a1=a, d=-a*b, g=c)
+par <- data.frame(a1=a, d=-a/*b, g=c)
 
 # person
 set.seed(123)
