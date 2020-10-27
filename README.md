@@ -1,37 +1,123 @@
-## Welcome to GitHub Pages
+# ITEMS: Fundations of IRT Estimation 
+## (Examples with R mirt and mirtCAT package)
 
-You can use the [editor on GitHub](https://github.com/wzhranran/wzhranran.github.io/edit/main/README.md) to maintain and preview the content for your website in Markdown files.
+Zhuoran Wang\
+2020-10-25
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
-
-### Markdown
-
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
-
+## 1. Install and Load Packages
 ```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
+install.packages("mirt")
+install.packages("mirtCAT")
+library(mirt)
+library(mirtCAT)
 ```
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
+## 2. Parameter Generation
+40 3PL items and 1000 normally distributed candidates are generated.
+```markdown
+# define test length and population
+n_item <- 40
+n_person <- 1000
 
-### Jekyll Themes
+# item
+set.seed(123)
+a <- rlnorm(n_item, meanlog = 0.3, sdlog=0.3)
+b <- rnorm(n_item)
+c <- rbeta(n_item, 20, 80)
+par <- data.frame(a1=a, d=-a*b, g=c)
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/wzhranran/wzhranran.github.io/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
+# person
+set.seed(123)
+theta <- rnorm(n_person)
+```
 
-### Support or Contact
+## 3. Response Simulation
+```markdown
+resp <- simdata(a=a, d=-1*b, N=n_person, itemtype = '3PL', guess = c, Theta=matrix(theta))
 
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+```
+
+## 4. Scoring with Known Item Parameters
+```markdown
+# IRT model definition
+mod <- generate.mirt_object(parameters = par, itemtype ='3PL')
+
+# ability estimation with MLE 
+temp <- fscores(mod, method="ML", response.pattern=resp)[,-(1:n_item)] # exclude response matrix
+theta_est <- temp[,1] # theta estimation
+se_est <- temp[,2] # SE of theta estimation
+# assign -4 and 4 to extreme
+theta_est[which(theta_est>4)] <- 4
+theta_est[which(theta_est< -4)] <- -4
+
+# ability estimation with MAP 
+temp <- fscores(mod, method="MAP", response.pattern=resp)[,-(1:n_item)] # exclude response matrix
+theta_est <- temp[,1] # theta estimation
+se_est <- temp[,2] # SE of theta estimation
+
+# ability estimation with EAP
+temp <- fscores(mod, method="EAP", response.pattern=resp)[,-(1:n_item)] # exclude response matrix
+theta_est <- temp[,1] # theta estimation
+se_est <- temp[,2] # SE of theta estimation
+```
+
+## 5. Use Customized Population Prior in MAP and EAP
+```markdown
+# customized population prior
+fun <- function(Theta, ...) {
+  as.numeric(dgamma(Theta+2, shape = 2))
+}
+
+# MAP
+temp <- fscores(mod, method="MAP", custom_den = fun, response.pattern=resp)[,-(1:n_item)]
+theta_est <- temp[,1] # theta estimation
+se_est <- temp[,2] # SE of theta estimation
+
+# EAP
+temp <- fscores(mod, method="EAP", custom_den = fun, response.pattern=resp)[,-(1:n_item)]
+theta_est <- temp[,1] # theta estimation
+se_est <- temp[,2] # SE of theta estimation
+```
+
+## 6. Calibration
+```markdown
+mod_est <- mirt(resp, model=1, itemtype = "3PL", SE = T)
+temp <- coef(mod_est, printSE=T, IRTpars=T, as.data.frame=T)
+par_est <- matrix(temp[1:(n_item*4),1], nrow = n_item, byrow = T)[,-4] # in a,b,c format
+par_se <- matrix(temp[1:(n_item*4),2], ncol = 4, byrow = T)[,-4]
+```
+
+## 7. Calibration with Empirical Histogram for Latent Trait Distribution 
+```markdown
+mod_est <- mirt(resp, model=1, itemtype = "3PL", dentype = "EH", SE=T)
+temp <- coef(mod_est, printSE=T, IRTpars=T, as.data.frame=T)
+par_est <- matrix(temp[1:(n_item*4),1], nrow = n_item, byrow = T)[,-4] # in a,b,c format
+par_se <- matrix(temp[1:(n_item*4),2], ncol = 4, byrow = T)[,-4]
+```
+
+## 8. Calibration with Start Values for Item Parameters
+```markdown
+start_values <- mod2values(mod)
+# fix the . and _ discrepancy
+temp <- NA
+for (j in 1:n_item)
+{
+  temp[j] <- paste0("Item_", j)
+}
+start_values$item[1:(n_item*4)] <- rep(temp, each=4)
+mod_est <- mirt(resp, model=1, itemtype = "3PL", pars = start_values, SE=T)
+temp <- coef(mod_est, printSE=T, IRTpars=T, as.data.frame=T)
+par_est <- matrix(temp[1:(n_item*4),1], ncol = 4, byrow = T)[,-4]
+par_se <- matrix(temp[1:(n_item*4),2], ncol = 4, byrow = T)[,-4]
+```
+
+## 9. Calibration with Priors for Item Parameters
+```markdown
+prior <- list(c(seq(1, by=4, length.out = n_item), "lnorm", 0.3, 0.3),
+              c(seq(2, by=4, length.out = n_item), "norm", 0, 1))
+mod_est <- mirt(resp, model=1, itemtype = "3PL", SE=T,
+                parprior = prior)
+temp <- coef(mod_est, printSE=T, IRTpars=T, as.data.frame=T)
+par_est <- matrix(temp[1:(n_item*4),1], ncol = 4, byrow = T)[,-4]
+par_se <- matrix(temp[1:(n_item*4),2], ncol = 4, byrow = T)[,-4]
+```
