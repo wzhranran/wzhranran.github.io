@@ -24,7 +24,7 @@ set.seed(123)
 a <- rlnorm(n_item, meanlog = 0.3, sdlog=0.3)
 b <- rnorm(n_item)
 c <- rbeta(n_item, 20, 80)
-par <- data.frame(a1=a, d=-a\*b, g=c)
+par <- data.frame(a1=a, d=-a * b, g=c)
 
 # person
 set.seed(123)
@@ -33,7 +33,7 @@ theta <- rnorm(n_person)
 
 ## 3. Response Simulation
 ```r
-resp <- simdata(a=a, d=-a*b, N=n_person, itemtype = '3PL', guess = c, Theta=matrix(theta))
+resp <- simdata(a=a, d=-a * b, N=n_person, itemtype = '3PL', guess = c, Theta=matrix(theta))
 
 ```
 
