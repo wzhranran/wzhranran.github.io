@@ -5,7 +5,7 @@ Zhuoran Wang\
 2020-10-25
 
 ## 1. Install and Load Packages
-```markdown
+```r
 install.packages("mirt")
 install.packages("mirtCAT")
 library(mirt)
@@ -14,7 +14,7 @@ library(mirtCAT)
 
 ## 2. Parameter Generation
 40 3PL items and 1000 normally distributed candidates are generated.
-```markdown
+```r
 # define test length and population
 n_item <- 40
 n_person <- 1000
@@ -32,13 +32,13 @@ theta <- rnorm(n_person)
 ```
 
 ## 3. Response Simulation
-```markdown
+```r
 resp <- simdata(a=a, d=-a*b, N=n_person, itemtype = '3PL', guess = c, Theta=matrix(theta))
 
 ```
 
 ## 4. Scoring with Known Item Parameters
-```markdown
+```r
 # IRT model definition
 mod <- generate.mirt_object(parameters = par, itemtype ='3PL')
 
@@ -62,7 +62,7 @@ se_est <- temp[,2] # SE of theta estimation
 ```
 
 ## 5. Use Customized Population Prior in MAP and EAP
-```markdown
+```r
 # customized population prior
 fun <- function(Theta, ...) {
   as.numeric(dgamma(Theta+2, shape = 2))
@@ -80,7 +80,7 @@ se_est <- temp[,2] # SE of theta estimation
 ```
 
 ## 6. Calibration
-```markdown
+```r
 mod_est <- mirt(resp, model=1, itemtype = "3PL", SE = T)
 temp <- coef(mod_est, printSE=T, IRTpars=T, as.data.frame=T)
 par_est <- matrix(temp[1:(n_item*4),1], nrow = n_item, byrow = T)[,-4] # in a,b,c format
@@ -88,7 +88,7 @@ par_se <- matrix(temp[1:(n_item*4),2], ncol = 4, byrow = T)[,-4]
 ```
 
 ## 7. Calibration with Empirical Histogram for Latent Trait Distribution 
-```markdown
+```r
 mod_est <- mirt(resp, model=1, itemtype = "3PL", dentype = "EH", SE=T)
 temp <- coef(mod_est, printSE=T, IRTpars=T, as.data.frame=T)
 par_est <- matrix(temp[1:(n_item*4),1], nrow = n_item, byrow = T)[,-4] # in a,b,c format
@@ -96,7 +96,7 @@ par_se <- matrix(temp[1:(n_item*4),2], ncol = 4, byrow = T)[,-4]
 ```
 
 ## 8. Calibration with Start Values for Item Parameters
-```markdown
+```r
 start_values <- mod2values(mod)
 # fix the . and _ discrepancy
 temp <- NA
@@ -112,7 +112,7 @@ par_se <- matrix(temp[1:(n_item*4),2], ncol = 4, byrow = T)[,-4]
 ```
 
 ## 9. Calibration with Priors for Item Parameters
-```markdown
+```r
 prior <- list(c(seq(1, by=4, length.out = n_item), "lnorm", 0.3, 0.3),
               c(seq(2, by=4, length.out = n_item), "norm", 0, 1))
 mod_est <- mirt(resp, model=1, itemtype = "3PL", SE=T,
