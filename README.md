@@ -83,16 +83,16 @@ se_est <- temp[,2] # SE of theta estimation
 ```r
 mod_est <- mirt(resp, model=1, itemtype = "3PL", SE = T)
 temp <- coef(mod_est, printSE=T, IRTpars=T, as.data.frame=T)
-par_est <- matrix(temp[1:(n_item*4),1], nrow = n_item, byrow = T)[,-4] # in a,b,c format
-par_se <- matrix(temp[1:(n_item*4),2], ncol = 4, byrow = T)[,-4]
+par_est <- matrix(temp[1:(n_item * 4),1], nrow = n_item, byrow = T)[,-4] # in a,b,c format
+par_se <- matrix(temp[1:(n_item * 4),2], ncol = 4, byrow = T)[,-4]
 ```
 
 ## 7. Calibration with Empirical Histogram for Latent Trait Distribution 
 ```r
 mod_est <- mirt(resp, model=1, itemtype = "3PL", dentype = "EH", SE=T)
 temp <- coef(mod_est, printSE=T, IRTpars=T, as.data.frame=T)
-par_est <- matrix(temp[1:(n_item*4),1], nrow = n_item, byrow = T)[,-4] # in a,b,c format
-par_se <- matrix(temp[1:(n_item*4),2], ncol = 4, byrow = T)[,-4]
+par_est <- matrix(temp[1:(n_item * 4),1], nrow = n_item, byrow = T)[,-4] # in a,b,c format
+par_se <- matrix(temp[1:(n_item * 4),2], ncol = 4, byrow = T)[,-4]
 ```
 
 ## 8. Calibration with Start Values for Item Parameters
@@ -107,8 +107,8 @@ for (j in 1:n_item)
 start_values$item[1:(n_item*4)] <- rep(temp, each=4)
 mod_est <- mirt(resp, model=1, itemtype = "3PL", pars = start_values, SE=T)
 temp <- coef(mod_est, printSE=T, IRTpars=T, as.data.frame=T)
-par_est <- matrix(temp[1:(n_item*4),1], ncol = 4, byrow = T)[,-4]
-par_se <- matrix(temp[1:(n_item*4),2], ncol = 4, byrow = T)[,-4]
+par_est <- matrix(temp[1:(n_item * 4),1], ncol = 4, byrow = T)[,-4]
+par_se <- matrix(temp[1:(n_item * 4),2], ncol = 4, byrow = T)[,-4]
 ```
 
 ## 9. Calibration with Priors for Item Parameters
@@ -118,6 +118,6 @@ prior <- list(c(seq(1, by=4, length.out = n_item), "lnorm", 0.3, 0.3),
 mod_est <- mirt(resp, model=1, itemtype = "3PL", SE=T,
                 parprior = prior)
 temp <- coef(mod_est, printSE=T, IRTpars=T, as.data.frame=T)
-par_est <- matrix(temp[1:(n_item*4),1], ncol = 4, byrow = T)[,-4]
-par_se <- matrix(temp[1:(n_item*4),2], ncol = 4, byrow = T)[,-4]
+par_est <- matrix(temp[1:(n_item * 4),1], ncol = 4, byrow = T)[,-4]
+par_se <- matrix(temp[1:(n_item * 4),2], ncol = 4, byrow = T)[,-4]
 ```
